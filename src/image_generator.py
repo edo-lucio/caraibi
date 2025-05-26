@@ -25,20 +25,20 @@ def load_config(config_path: str, config_name: str = "images") -> Dict:
     
     try:
         with open(config_path, "r") as f:
-            all_configs = json.load(f)
+            configs = json.load(f)
         
-        if not isinstance(all_configs, dict):
+        if not isinstance(configs, dict):
             print(f"Invalid config format in {config_path}. Using default config.")
             return default_config
             
-        if config_name in all_configs:
-            config = all_configs[config_name]
+        if config_name in configs:
+            config = configs[config_name]
             if not isinstance(config, dict) or "stages" not in config:
                 print(f"Config '{config_name}' missing 'stages'. Using default config.")
                 return default_config
             return config
         else:
-            print(f"Config '{config_name}' not found in {config_path}. Available: {list(all_configs.keys())}")
+            print(f"Config '{config_name}' not found in {config_path}. Available: {list(configs.keys())}")
             print("Using default config.")
             return default_config
             
@@ -69,7 +69,7 @@ class TensorArtGenerator:
         api_key: str = os.getenv("TENSOR_ART_API_KEY"),
         output_folder: str = "./output",
         output_format: str = "png",
-        config_path: Optional[str] = "./config",
+        config_path: Optional[str] = "./config.json",
         config_name: str = "images"
     ):
         """
@@ -93,7 +93,7 @@ class TensorArtGenerator:
         self.client = TensorArtClient(app_id=app_id, api_key=api_key)
         self.output_folder = output_folder.rstrip("/")
         self.output_format = output_format.lstrip(".")
-        self.default_stages = load_config(config_path, config_name).get("stages", [
+        self.stages = load_config(config_path, config_name).get("stages", [
             {"type": "INPUT_INITIALIZE", "inputInitialize": {}},
             {"type": "DIFFUSION", "diffusion": {}}
         ])
@@ -157,9 +157,9 @@ class TensorArtGenerator:
             # Generate image via TensorArtClient
             image_urls = self.client.generate_images(
                 prompts=[prompt],
-                stages=self.default_stages,
+                stages=self.stages,
                 max_wait_time=300,
-                poll_interval=15
+                poll_interval=12
             )
 
             if not image_urls:
@@ -194,30 +194,31 @@ class TensorArtGenerator:
         output_path = output_path.rstrip("/")
         saved_paths = []
 
-        try:
-            # Generate images via TensorArtClient
-            image_urls = self.client.generate_images(
-                prompts=prompts,
-                stages=self.default_stages,
-                max_wait_time=300,
-                poll_interval=15
-            )
+        for i in range(0, len(prompts), 4): # 4 is the max batch size
+            prompts_batch = prompts[i:i+4]
+            try:
+                image_urls = self.client.generate_images(
+                    prompts=prompts_batch,
+                    stages=self.stages,
+                    max_wait_time=12000,
+                    poll_interval=30
+                )
 
-            if not image_urls:
-                print("Failed to generate images.")
+                if not image_urls:
+                    print("Failed to generate images.")
+                    return []
+
+                # Save each image
+                for i, image_url in enumerate(image_urls):
+                    image_path = f"{output_path}/{i}_{int(time.time() * 1000)}.{self.output_format}"
+                    if self._save_output(image_url, image_path):
+                        saved_paths.append(image_path)
+
+                return saved_paths
+
+            except Exception as e:
+                print(f"Error generating images: {e}")
                 return []
-
-            # Save each image
-            for i, image_url in enumerate(image_urls):
-                image_path = f"{output_path}/{i}_{int(time.time() * 1000)}.{self.output_format}"
-                if self._save_output(image_url, image_path):
-                    saved_paths.append(image_path)
-
-            return saved_paths
-
-        except Exception as e:
-            print(f"Error generating images: {e}")
-            return []
 
 def generate_image(prompt: str, output_path: Optional[str] = None) -> Optional[str]:
     """
@@ -237,7 +238,18 @@ def generate_image(prompt: str, output_path: Optional[str] = None) -> Optional[s
         print(f"Error in convenience function generate_image: {e}")
         return None
 
-def generate_images(prompts: List[str], output_path: str = "./output") -> List[str]:
+def generate_images(prompts: str, output_path: Optional[str] = None) -> Optional[str]:
+    try:
+        generator = TensorArtGenerator()
+
+        for idx, prompt in enumerate(prompts):
+            generator.generate_image(prompt, output_path)
+
+    except Exception as e:
+        print(f"Error in convenience function generate_images: {e}")
+        return []
+
+def generate_images_batch(prompts: List[str], output_path: str = "./output") -> List[str]:
     """
     Convenience function to generate and save images for a list of prompts using the TensorArt API.
     

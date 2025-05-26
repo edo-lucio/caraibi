@@ -23,7 +23,7 @@ class TensorArtClient:
         self,
         app_id: str = os.getenv("TENSOR_ART_APP_ID"),
         api_key: str = os.getenv("TENSOR_ART_API_KEY"),
-        base_url: str = "https://ap-east-1.tensorart.art/v1/jobs"
+        base_url: str = "https://ap-east-1.tensorart.cloud/v1/jobs"
     ):
         """
         Initialize the TensorArtClient.
@@ -125,7 +125,6 @@ class TensorArtClient:
         }
 
         try:
-            # Submit the job
             post_response = requests.post(self.base_url, headers=headers, data=json.dumps(payload))
             post_response.raise_for_status()  # Raises for non-200 status
             job_response = post_response.json()
@@ -135,6 +134,8 @@ class TensorArtClient:
             start_time = time.time()
             retry_count = 0
             max_retries = 1
+
+            print(f"{self.base_url}/{job_id}")
 
             while time.time() - start_time < max_wait_time:
                 try:
@@ -149,8 +150,8 @@ class TensorArtClient:
                         return [image["url"] for image in images if "url" in image]
 
                     elif job_status == "FAILED":
-                        print("Job failed.")
-                        return []
+                        print("Job failed, retrying")
+                        return self.generate_images(prompts, stages, max_wait_time, poll_interval)
 
                     time.sleep(poll_interval)
 

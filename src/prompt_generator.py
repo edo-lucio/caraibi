@@ -60,9 +60,8 @@ class DeepSeekImagePromptGenerator:
 
         # Construct the prompt for the DeepSeek API
         prompt_instruction = (
-            f"Analyze the following YouTube script and its description to generate image prompts for a text-to-image model (e.g., Flux, Stable Diffusion). "
+            f"You are a professional image prompt engineer. I need you to create {num_prompts} detailed image generation prompts based on the following script content: "
             f"Identify key visual scenes or moments from the script that would make compelling images, using the description for context (e.g., tone, theme). "
-            f"Use the default style of {self.default_style} and {self.default_detail_level} detail level, but adapt the style if the script or description suggests a specific theme. "
             f"Each prompt should be descriptive, including specific details about lighting, colors, composition, and atmosphere. "
             f"Return the prompts as a list separated by newlines. "
             f"Ensure prompts are vivid, standalone, and optimized for high-quality image generation. ", 

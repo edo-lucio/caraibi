@@ -2,6 +2,9 @@ import os
 from typing import Optional
 import requests
 
+from dotenv import load_dotenv
+load_dotenv()
+
 class DeepSeekAPIClient:
     """
     A class to handle interactions with the DeepSeek API.

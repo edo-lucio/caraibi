@@ -5,8 +5,7 @@ from src.clients.text_models_clients import DeepSeekAPIClient
 from dotenv import load_dotenv
 load_dotenv()
 
-# Module-level constant for token estimation
-CHARS_PER_TOKEN = 4.0  # Approximate for English text
+CHARS_PER_TOKEN = 4.0
 
 def estimate_tokens(text: str) -> int:
     """Estimate the number of tokens in a given text."""

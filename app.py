@@ -1,6 +1,6 @@
 from src.script_generator import YouTubeScriptGenerator, generate_script
 from src.prompt_generator import DeepSeekImagePromptGenerator, generate_prompts
-from src.image_generator import TensorArtGenerator, generate_image, generate_images
+from src.image_generator import TensorArtGenerator, generate_image, generate_images, generate_images_batch
 
 def main():
     description = """
@@ -13,12 +13,11 @@ def main():
     title = ""
 
     # script = generate_script(title, description, target_length)
-    image_description = "Depict ordinary scenes of life of medioeval family. Be highly descriptive and depict the emotions" \
-    "and imagery of the script."
+    image_description = "detailed images of realistic characters, convey emotions and be descriptive with the settings."
     script = "beutiful girl having a stink problem she is hated by everyone. she likes garlic very much. and everyone seem to subtly act as they know it."
     image_prompts = generate_prompts(script, image_description)
-    print(type(image_prompts))
 
+    print(image_description)
     generate_images(image_prompts)
 
     if script:
