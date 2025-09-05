@@ -6,42 +6,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class DeepSeekAPIClient:
-    """
-    A class to handle interactions with the DeepSeek API.
-    
-    Attributes:
-        api_key (str): The DeepSeek API key.
-        base_url (str): The DeepSeek API endpoint URL.
-        model (str): The DeepSeek model to use (e.g., 'deepseek-chat').
-    """
-    
     def __init__(self, 
             api_key: str = os.getenv("DEEPSEEK_API"), 
             base_url: str = "https://api.deepseek.com/v1/chat/completions",
             model: str = "deepseek-chat"):
-        """
-        Initialize the DeepSeekAPIClient.
         
-        Args:
-            api_key: The DeepSeek API key.
-            base_url: The API endpoint URL (default: DeepSeek v1 endpoint).
-            model: The DeepSeek model to use (default: 'deepseek-chat').
-        """
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
 
     def generate_text(self, prompt: str, max_tokens: int) -> Optional[str]:
-        """
-        Call the DeepSeek API with the given prompt.
-        
-        Args:
-            prompt: The prompt to send to the API.
-            max_tokens: Maximum tokens for the API response.
-            
-        Returns:
-            The generated text or None if an error occurs.
-        """
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"

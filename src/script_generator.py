@@ -58,60 +58,33 @@ def find_last_complete_sentence(text: str, max_length: int) -> str:
     return trimmed[:last_sentence_end + 1]
 
 class YouTubeScriptGenerator:
-    """
-    A class to generate YouTube video scripts using a provided API client.
-    
-    Attributes:
-        api_client: The API client to use for text generation.
-        max_tokens_per_request (int): Maximum tokens per API request.
-    """
-    
     def __init__(self, api_client: DeepSeekAPIClient, max_tokens_per_request: int = 8192):
-        """
-        Initialize the YouTubeScriptGenerator.
-        
-        Args:
-            api_client: An instance of an API client (e.g., DeepSeekAPIClient).
-            max_tokens_per_request: Maximum tokens per API request (default: 8192).
-        """
         self.api_client = api_client
         self.max_tokens_per_request = max_tokens_per_request
 
-    def generate_youtube_script(self, title: str, description: str, target_length: int) -> Optional[str]:
-        """
-        Generate a YouTube video script based on the description and target character length.
-        The script contains only the narrator's spoken dialogue, with no scene descriptions, music cues, or meta-commentary.
-        
-        Args:
-            description: The description of the video content.
-            target_length: Desired script length in characters.
-            
-        Returns:
-            The generated script or None if generation fails.
-        """
+    def generate_youtube_script(self, title: str, description: str, target_length: int, output_path: str = "output.txt") -> Optional[str]:
         if not description or not isinstance(description, str):
             raise ValueError("Description must be a non-empty string")
         if not isinstance(target_length, int) or target_length <= 0:
             raise ValueError("Target length must be a positive integer")
             
-        # Initialize variables
         current_script = ""
         remaining_chars = target_length
         
-        # Define a safe max tokens for each API call (reserve some for prompt)
         safe_max_tokens = self.max_tokens_per_request - 100
         base_prompt = (
             f"Write a YouTube video script based on the following title: \n {title} and description: \n{description}. "
             f"The script should be engaging, clear, and suitable for a YouTube audience. "
             f"Include only the spoken dialogue for the narrator, excluding any scene descriptions, music cues, or meta-commentary. "
             f"Target approximately {target_length} characters total, but for this part, "
-            f"""Each image prompt should:
-                1. Capture a specific vivid scene or moment from the script
-                2. Include detailed visual elements (colors, lighting, composition)
-                3. Be self-contained and specific enough to generate a coherent image
-                4. Be 2-4 sentences long
-                Important: Your response should be a JSON array of strings, each string being a complete image prompt.
-                Do not include any explanations, comments, or additional text"""
+            f"""
+            Important: Your response should ONLY contain the exact text that a narrator should read verbatim.
+                Do not include:
+                - Stage directions or acting notes
+                - Character names or scene headings
+                - Any formatting markers like "NARRATOR:" or similar
+                - Any commentary, explanations, or notes
+            The output should be pure spoken text that can be read directly by a narrator without any modification."""
             )
         
         while remaining_chars > 0:
@@ -161,23 +134,8 @@ class YouTubeScriptGenerator:
         # Trim to the last complete sentence within target_length
         current_script = find_last_complete_sentence(current_script, target_length)
             
-        with open("output.txt", "w", encoding="utf-8") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(current_script)
 
         return current_script
-
-def generate_script(title: str, description: str, target_length: int) -> Optional[str]:
-    """
-    Convenience function to generate a YouTube script.
-    
-    Args:
-        description: The description of the video content.
-        target_length: Desired script length in characters.
-        
-    Returns:
-        The generated script or None if generation fails.
-    """
-    api_client = DeepSeekAPIClient()
-    generator = YouTubeScriptGenerator(api_client)
-    return generator.generate_youtube_script(title, description, target_length)
 

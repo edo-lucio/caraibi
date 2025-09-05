@@ -174,3 +174,8 @@ class TensorArtClient:
         except (KeyError, IndexError, ValueError) as e:
             print(f"Error parsing API response: {e}")
             return []
+        
+
+
+# #         TENSOR_ART_API_KEY = 0e2edbce-286b-4518-871a-dc4c8af3da73
+# # TENSOR_ART_APP_ID = T79w6xDJ_
